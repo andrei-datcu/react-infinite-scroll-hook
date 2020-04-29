@@ -58,7 +58,7 @@ function useInfiniteScroll({
   }
 
   function listenBottomOffset() {
-    if (listen && !loading && hasNextPage) {
+    if (typeof loading === 'undefined' || (listen && !loading && hasNextPage)) {
       if (ref.current) {
         let parentRect = null;
         if (scrollContainer === PARENT) {

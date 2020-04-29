@@ -4,7 +4,7 @@ declare module "react-infinite-scroll-hook" {
   type OffsetProvider = (selfRect: DOMRect, windowSize: WindowSize, containerRect: DOMRect) => number;
   export interface useInfiniteScrollProps {
     // Some sort of "fetching" info of the request.
-    loading: boolean;
+    loading?: boolean;
     // If the list has more items to load.
     hasNextPage: boolean;
     // The callback function to execute when the threshold is exceeded.
