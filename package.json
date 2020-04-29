@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-scroll-hook",
-  "version": "2.0.1",
+  "version": "2.1.1",
   "description": "A simple hook to create infinite scroll components",
   "author": "Onur Onder",
   "homepage": "https://onderonur.github.io/react-infinite-scroll-hook/",
@@ -18,14 +18,11 @@
     "infinite-scroll",
     "react-component"
   ],
-  "main": "lib/index.js",
-  "module": "es/index.js",
+  "main": "src/index.js",
   "types": "./index.d.ts",
   "files": [
     "css",
-    "es",
-    "lib",
-    "umd",
+    "src",
     "index.d.ts"
   ],
   "scripts": {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import useWindowSize from './useWindowSize';
 import useInterval from './useInterval';
+import { getBottomOffset } from './offsetProviders';
 
 const WINDOW = 'window';
 const PARENT = 'parent';
@@ -9,12 +10,13 @@ function useInfiniteScroll({
   loading,
   hasNextPage,
   onLoadMore,
+  offsetProviders = [getBottomOffset],
   threshold = 150,
   checkInterval = 200,
   scrollContainer = WINDOW,
 }) {
   const ref = useRef(null);
-  const { height: windowHeight, width: windowWidth } = useWindowSize();
+  const windowSize = useWindowSize();
   // Normally we could use the "loading" prop, but when you set "checkInterval" to a very small
   // number (like 10 etc.), some request components can't set its loading state
   // immediately (I had this problem with react-apollo's Query component. In some cases, it runs
@@ -36,31 +38,16 @@ function useInfiniteScroll({
     return { top, bottom, left, right };
   }
 
-  function getBottomOffset() {
-    const rect = ref.current.getBoundingClientRect();
-
-    const bottom = rect.bottom;
-    let bottomOffset = bottom - windowHeight;
-
-    if (scrollContainer === PARENT) {
-      const { bottom: parentBottom } = getParentSizes();
-      // Distance between bottom of list and its parent
-      bottomOffset = bottom - parentBottom;
-    }
-
-    return bottomOffset;
-  }
-
-  function isParentInView() {
+  function isParentInView(parentRect) {
     const parent = ref.current ? ref.current.parentNode : null;
 
     if (parent) {
-      const { left, right, top, bottom } = getParentSizes();
-      if (left > windowWidth) {
+      const { left, right, top, bottom } = parentRect;
+      if (left > windowSize.width) {
         return false;
       } else if (right < 0) {
         return false;
-      } else if (top > windowHeight) {
+      } else if (top > windowSize.height) {
         return false;
       } else if (bottom < 0) {
         return false;
@@ -73,21 +60,24 @@ function useInfiniteScroll({
   function listenBottomOffset() {
     if (listen && !loading && hasNextPage) {
       if (ref.current) {
+        let parentRect = null;
         if (scrollContainer === PARENT) {
-          if (!isParentInView()) {
+          parentRect = getParentSizes();
+          if (!isParentInView(parentRect)) {
             // Do nothing if the parent is out of screen
             return;
           }
         }
 
-        // Check if the distance between bottom of the container and bottom of the window or parent
-        // is less than "threshold"
-        const bottomOffset = getBottomOffset();
-        const validOffset = bottomOffset < threshold;
+        // Check if the any distance from the offset providers is less than "threshold"
+        const rect = ref.current.getBoundingClientRect();
+        const provider = offsetProviders.find(offsetProivder => {
+          return offsetProivder(rect, windowSize, parentRect) < threshold;
+        });
 
-        if (validOffset) {
+        if (provider) {
           setListen(false);
-          onLoadMore();
+          onLoadMore(provider);
         }
       }
     }
